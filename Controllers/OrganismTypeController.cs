@@ -21,6 +21,7 @@ namespace WhonetOrgCodeAdapter.Controllers
                 _orgCode = value;
             }
         }
+        
         /// <summary>
         /// Является ли данный код микроорганизма первичным, который изменится в дальнейшем
         /// </summary>
@@ -36,6 +37,7 @@ namespace WhonetOrgCodeAdapter.Controllers
             if (org.SCTTEXT.ToLower().Contains("sp.")) { return true; }
             return false;
         }
+        
         /// <summary>
         /// Проверка, подходит ли для данного микроорганизма такое исследование
         /// </summary>
@@ -51,21 +53,42 @@ namespace WhonetOrgCodeAdapter.Controllers
             if (pcrType == PcrTypeEnum.VanAB) { return checkVre(org); }
             throw new ArgumentException("Такой тип исследования еще не определён!");
         }
+        
+        #region privateCases
+        /*Частные случаи проверки возможности проведения конкретного ПЦР*/
         private bool checkMrsa(ORGLIST checkedOrg)
         {
+            if (checkGramPositiveCocci(checkedOrg)) { return true; }
             return checkedOrg.GENUS == "Staphylococcus";
         }
         private bool checkMBL(ORGLIST checkedOrg)
         {
+            if (checkGramNegativeBacillii(checkedOrg)) { return true; }
             return checkedOrg.ORGGROUP == "EBC" || checkedOrg.GENUS == "Pseudomonas";
         }
         private bool checkVre(ORGLIST checkedOrg)
         {
+            if (checkGramPositiveCocci(checkedOrg)) { return true; }
             return checkedOrg.GENUS == "Staphylococcus" || checkedOrg.GENUS == "Enterococcus";
         }
         private bool checkAcinetobacter(ORGLIST checkedOrg)
         {
+            if (checkGramNegativeBacillii(checkedOrg)) { return true; }
             return checkedOrg.GENUS == "Acinetobacter";
         }
+        #endregion privateCases
+
+        #region casesExceptions
+        /*Проверка для случаев, когда группа микроорганизмов определена очень широко,
+         *а ПЦР в данном случае является и дифференцирующей реакцией*/
+        private bool checkGramPositiveCocci(ORGLIST checkedOrg)
+        {
+            return checkedOrg.ORG == "gpc";
+        }
+        private bool checkGramNegativeBacillii(ORGLIST checkedOrg)
+        {
+            return checkedOrg.ORG == "gnr";
+        }
+        #endregion casesExceptions
     }
 }
